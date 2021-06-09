@@ -16,3 +16,5 @@ node_modules
 ehthumbs.db
 *[Tt]humbs.db
 *.Trashes
+newrelic.js
+newrelic_agent.log

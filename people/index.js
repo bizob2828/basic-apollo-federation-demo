@@ -1,5 +1,6 @@
 import { ApolloServer, gql } from "apollo-server";
 import { buildFederatedSchema } from "@apollo/federation";
+const nrPlugin = require('@newrelic/apollo-server-plugin')
 
 import { people } from "../data.js";
 
@@ -35,6 +36,9 @@ const resolvers = {
 
 const server = new ApolloServer({
   schema: buildFederatedSchema([{ typeDefs, resolvers }]),
+  plugins: [
+    nrPlugin
+  ],
 });
 
 server.listen({ port }).then(({ url }) => {

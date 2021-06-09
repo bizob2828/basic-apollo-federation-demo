@@ -1,5 +1,6 @@
 import { ApolloGateway } from "@apollo/gateway";
 import { ApolloServer } from "apollo-server";
+const nrPlugin = require('@newrelic/apollo-server-plugin')
 
 const port = 4000;
 
@@ -12,6 +13,9 @@ const gateway = new ApolloGateway({
 
 const server = new ApolloServer({
   gateway,
+  plugins: [
+    nrPlugin
+  ],
   subscriptions: false,
 });
 
