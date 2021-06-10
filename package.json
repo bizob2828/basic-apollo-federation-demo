@@ -5,8 +5,8 @@
   "main": "index.js",
   "scripts": {
     "dev": "concurrently -k npm:dev:*",
-    "dev:films": "nodemon -r esm -r newrelic ./films/index.js",
-    "dev:people": "nodemon -r esm -r newrelic ./people/index.js",
+    "dev:films": "nodemon -r esm ./films/index.js",
+    "dev:people": "nodemon -r esm ./people/index.js",
     "dev:gateway": "wait-on tcp:4001 tcp:4002 && nodemon -r esm -r newrelic ./index.js"
   },
   "keywords": [],

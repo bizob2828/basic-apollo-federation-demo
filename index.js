@@ -30,7 +30,6 @@ function cleanQuery(query) {
 
 class NRDataSource extends RemoteGraphQLDataSource {
   willSendRequest({ request, context }) {
-    debugger;
     const parentSegment = nr.getActiveSegment()
     if (!parentSegment) {
       logger.trace('cannot find parent segment')
@@ -50,8 +49,11 @@ class NRDataSource extends RemoteGraphQLDataSource {
     context[NR_SEGMENT] = gatewaySegment
   }
 
+  didEncounterError(error) {
+    // TODO: add errors to NR agent
+  }
+
   didReceiveResponse({ request, response, context }) {
-    debugger;
     const gatewaySegment = context[NR_SEGMENT]
     if (!gatewaySegment) {
       logger.trace('cannot find gateway segment')
