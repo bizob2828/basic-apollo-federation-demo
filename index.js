@@ -1,7 +1,8 @@
-import { ApolloGateway, RemoteGraphQLDataSource } from "@apollo/gateway";
-import { ApolloServer } from "apollo-server";
-const nrPlugin = require('@newrelic/apollo-server-plugin')
 const newrelic = require('newrelic')
+
+const { ApolloGateway, RemoteGraphQLDataSource } = require("@apollo/gateway")
+const { ApolloServer } = require("apollo-server")
+const nrPlugin = require('@newrelic/apollo-server-plugin')
 const nr = newrelic.shim;
 const logger = nr.logger.child({ component: 'ApolloGatewayService' })
 const NR_SEGMENT = Symbol('nrSegment')
@@ -30,13 +31,15 @@ function cleanQuery(query) {
 
 class NRDataSource extends RemoteGraphQLDataSource {
   willSendRequest({ request, context }) {
-    const parentSegment = nr.getActiveSegment()
+    const parentSegment = context['parent'] || nr.getActiveSegment()
     if (!parentSegment) {
       logger.trace('cannot find parent segment')
       return
     }
+
+    // anyway to tie in to where that request is made and do magic?
     const gatewaySegment = nr.createSegment(
-      `GraphQL/operation/ApolloGateway/query/${this.name}`,
+      `GraphQL/SubGraph/ApolloServer/${this.name}`,
       recordOperationSegment,
       parentSegment
     )
@@ -46,7 +49,11 @@ class NRDataSource extends RemoteGraphQLDataSource {
       return
     }
     gatewaySegment.start()
+
+    nr.setActiveSegment(gatewaySegment)
+
     context[NR_SEGMENT] = gatewaySegment
+    context['parent'] = parentSegment
   }
 
   didEncounterError(error) {
@@ -54,6 +61,9 @@ class NRDataSource extends RemoteGraphQLDataSource {
   }
 
   didReceiveResponse({ request, response, context }) {
+    const segment = nr.getActiveSegment()
+
+    // this likely isn't necessary if segment set to active
     const gatewaySegment = context[NR_SEGMENT]
     if (!gatewaySegment) {
       logger.trace('cannot find gateway segment')
@@ -61,8 +71,11 @@ class NRDataSource extends RemoteGraphQLDataSource {
     }
 
     const query = cleanQuery(request.query)
-    gatewaySegment.addAttribute('graphql.operation.query', query)
+    gatewaySegment.addAttribute('graphql.subgraph.query', query)
     gatewaySegment.end()
+
+    const parent = context['parent']
+    nr.setActiveSegment(parent)
     return response;
   }
 }
